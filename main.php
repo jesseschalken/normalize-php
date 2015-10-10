@@ -4,6 +4,8 @@
 namespace NormalizePhp;
 
 use PhpParser\Lexer;
+use PhpParser\Node;
+use PhpParser\Node\Name;
 use PhpParser\ParserFactory;
 use PhpParser\PrettyPrinter\Standard;
 
@@ -51,6 +53,29 @@ function find_php($file) {
 }
 
 class Normalizer {
+    /**
+     * @param Node[] $nodes
+     * @param callable $map
+     * @return \PhpParser\Node[]
+     */
+    private static function mapNodes(array $nodes, callable $map) {
+        foreach ($nodes as $k => $node) {
+            if (!$node instanceof Node)
+                continue;
+            foreach ($node->getSubNodeNames() as $prop) {
+                $value = $node->$prop;
+                if ($value instanceof Node) {
+                    $node->$prop = self::mapNodes([$value], $map)[0];
+                } else if (is_array($value) && isset($value[0]) && $value[0] instanceof Node) {
+                    $node->$prop = self::mapNodes($value, $map);
+                }
+            }
+
+            $nodes[$k] = $map($node);
+        }
+        return $nodes;
+    }
+
     private $parser;
     private $prettyPrinter;
 
@@ -74,7 +99,31 @@ class Normalizer {
             $hashBang = '';
         }
 
-        return $hashBang . $this->prettyPrinter->prettyPrintFile($this->parser->parse($php));
+        $nodes = $this->parser->parse($php);
+
+        // Convert FALSE, TRUE and NULL into lowercase
+        $nodes = self::mapNodes($nodes, function (Node $node) {
+            if ($node instanceof Node\Expr\ConstFetch) {
+                $name = $node->name;
+                $lower = strtolower($name->toString());
+                if (
+                    $lower === 'false' ||
+                    $lower === 'true' ||
+                    $lower === 'null'
+                ) {
+                    $name->parts = array_map('strtolower', $name->parts);
+                }
+            }
+            return $node;
+        });
+
+        // Remove comments
+        $nodes = self::mapNodes($nodes, function (Node $node) {
+            $node->setAttribute('comments', []);
+            return $node;
+        });
+
+        return $hashBang . $this->prettyPrinter->prettyPrintFile($nodes);
     }
 }
 
