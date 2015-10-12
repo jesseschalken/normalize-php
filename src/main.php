@@ -46,39 +46,21 @@ function replace_node(StringReplacements $string1, Node $node1, Node $node2, $st
         $props1 = array_flatten(node_props($node1));
         $props2 = array_flatten(node_props($node2));
 
-        if (array_keys($props1) !== array_keys($props2)) {
+        if (
+            array_map(function ($v) { return $v instanceof Node ? null : $v; }, $props1) !==
+            array_map(function ($v) { return $v instanceof Node ? null : $v; }, $props2)
+        ) {
             $replace = true;
         } else {
             $replace = false;
+
             foreach ($props1 as $k => $v1) {
                 $v2 = $props2[$k];
-                if (gettype($v1) !== gettype($v2)) {
-                    $replace = true;
-                    break;
-                } else if (is_scalar($v1) || is_null($v1)) {
-                    if ($v1 !== $v2) {
-                        $replace = true;
-                        break;
-                    }
-                } else if (
+                if (
                     $v1 instanceof Node &&
                     $v2 instanceof Node
                 ) {
-                } else {
-                    $replace = true;
-                    break;
-                }
-            }
-
-            if (!$replace) {
-                foreach ($props1 as $k => $v1) {
-                    $v2 = $props2[$k];
-                    if (
-                        $v1 instanceof Node &&
-                        $v2 instanceof Node
-                    ) {
-                        replace_node($string1, $v1, $v2, $string2);
-                    }
+                    replace_node($string1, $v1, $v2, $string2);
                 }
             }
         }

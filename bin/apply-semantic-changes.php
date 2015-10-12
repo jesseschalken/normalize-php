@@ -40,12 +40,12 @@ function main($argv) {
     $dstFiles = filter_php(get_files($dst));
 
     foreach (array_diff($srcFiles, $dstFiles) as $remove) {
-        print "removed $remove\n";
+        print "REMOVED $remove\n";
         unlink($src . DS . $remove);
     }
 
     foreach (array_diff($dstFiles, $srcFiles) as $add) {
-        print "added $add\n";
+        print "ADDED $add\n";
         copy($dst . DS . $add, $src . DS . $add);
     }
 
@@ -71,7 +71,7 @@ function main($argv) {
         }
 
         if ($changed) {
-            print "changed $file\n";
+            print "CHANGED $file\n";
             file_put_contents($src . DS . $file, $srcCode);
         } else {
             print "unchanged $file\n";
