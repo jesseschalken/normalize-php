@@ -140,27 +140,25 @@ class StringReplacements {
 }
 
 /**
- * @param string $path
+ * @param string $dir
  * @return string[]
  */
-function recursive_scan($path) {
-    switch (filetype($path)) {
-        case 'file':
-            return [$path];
-        case 'dir':
-            $paths = [];
-            foreach (array_diff(scandir($path), ['.', '..']) as $part) {
-                foreach (recursive_scan($path . DIRECTORY_SEPARATOR . $part) as $path2) {
-                    $paths[] = $path2;
-                }
+function dir_recursive_contents($dir) {
+    $result = [];
+    foreach (array_diff(scandir($dir), ['.', '..']) as $p) {
+        $path = $dir . DIRECTORY_SEPARATOR . $p;
+        if (filetype($path) === 'dir') {
+            foreach (dir_recursive_contents($path) as $p_) {
+                $result[] = $p . '/' . $p_;
             }
-            return $paths;
-        default:
-            return [];
+        } else {
+            $result [] = $p;
+        }
     }
+    return $result;
 }
 
-function filter_php(array $paths) {
+function filter_php_files(array $paths) {
     return array_filter($paths, function ($path) {
         return pathinfo($path, PATHINFO_EXTENSION) === 'php';
     });

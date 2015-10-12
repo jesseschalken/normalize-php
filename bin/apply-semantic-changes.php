@@ -7,21 +7,6 @@ require_once __DIR__ . '/../vendor/autoload.php';
 ini_set('memory_limit', '-1');
 ini_set('xdebug.max_nesting_level', '100000');
 
-function get_files($dir) {
-    $result = [];
-    foreach (array_diff(scandir($dir), ['.', '..']) as $p) {
-        $path = $dir . DIRECTORY_SEPARATOR . $p;
-        if (filetype($path) === 'dir') {
-            foreach (get_files($path) as $p_) {
-                $result[] = $p . DIRECTORY_SEPARATOR . $p_;
-            }
-        } else {
-            $result [] = $p;
-        }
-    }
-    return $result;
-}
-
 /**
  * @param string[] $argv
  * @return int
@@ -36,8 +21,8 @@ function main($argv) {
         list($src, $dst) = $argv;
     }
 
-    $srcFiles = filter_php(get_files($src));
-    $dstFiles = filter_php(get_files($dst));
+    $srcFiles = filter_php_files(dir_recursive_contents($src));
+    $dstFiles = filter_php_files(dir_recursive_contents($dst));
 
     foreach (array_diff($srcFiles, $dstFiles) as $remove) {
         print "REMOVED $remove\n";

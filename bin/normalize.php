@@ -12,13 +12,18 @@ ini_set('xdebug.max_nesting_level', '100000');
  * @return int
  */
 function main($argv) {
-    foreach (array_slice($argv, 1) as $file_) {
-        foreach (filter_php(recursive_scan($file_)) as $file) {
-            print "$file\n";
-            $nodes = parse_php(file_get_contents($file), $hashBang);
-            print $hashBang . pretty_print($nodes);
-            print "\n";
-        }
+    if (!isset($argv[1])) {
+        echo 'This script requires 1 argument (the directory containing .php files)';
+        return 1;
+    } else {
+        $dir = $argv[1];
+    }
+
+    foreach (filter_php_files(dir_recursive_contents($dir)) as $file) {
+        print "$file\n";
+        $nodes = parse_php(file_get_contents($dir . DIRECTORY_SEPARATOR . $file), $hashBang);
+        print $hashBang . pretty_print($nodes);
+        print "\n";
     }
     return 0;
 }
