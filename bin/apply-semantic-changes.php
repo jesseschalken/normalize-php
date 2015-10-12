@@ -13,7 +13,7 @@ function get_files($dir) {
         $path = $dir . DIRECTORY_SEPARATOR . $p;
         if (filetype($path) === 'dir') {
             foreach (get_files($path) as $p_) {
-                $result[] = $p_;
+                $result[] = $p . DIRECTORY_SEPARATOR . $p_;
             }
         } else {
             $result [] = $p;
@@ -27,10 +27,13 @@ function get_files($dir) {
  * @return int
  */
 function main($argv) {
-    list($src, $dst) = array_slice($argv, 1);
-    if (!$src || !$dst) {
-        echo 'Please call with two arguments';
+    $argv = array_slice($argv, 1);
+
+    if (count($argv) < 2) {
+        echo 'Please call with two arguments (SRC and DST)';
         return 1;
+    } else {
+        list($src, $dst) = $argv;
     }
 
     $srcFiles = filter_php(get_files($src));

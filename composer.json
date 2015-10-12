@@ -3,6 +3,6 @@
         "nikic/php-parser": "v2.0.0alpha1"
     },
     "autoload": {
-        "files": ["src"]
+        "files": ["src/main.php"]
     }
 }

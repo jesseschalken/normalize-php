@@ -1,4 +1,3 @@
-#!/bin/env php
 <?php
 
 namespace NormalizePhp;
@@ -56,7 +55,7 @@ function replace_node(StringReplacements $string1, Node $node1, Node $node2, $st
                 if (gettype($v1) !== gettype($v2)) {
                     $replace = true;
                     break;
-                } else if (is_scalar($v1) || is_null($v2)) {
+                } else if (is_scalar($v1) || is_null($v1)) {
                     if ($v1 !== $v2) {
                         $replace = true;
                         break;
