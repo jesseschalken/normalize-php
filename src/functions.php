@@ -1,15 +1,14 @@
 <?php
 
-namespace NormalizePhp;
+namespace PhpSyntaxDiff;
 
-use Exception;
 use PhpParser\Lexer;
 use PhpParser\Node;
 use PhpParser\Node\Name;
 use PhpParser\ParserFactory;
 use PhpParser\PrettyPrinter\Standard;
 
-const DS = \DIRECTORY_SEPARATOR;
+const DIR_SEP = \DIRECTORY_SEPARATOR;
 
 function node_props(Node $node) {
     $props = [];
@@ -34,12 +33,12 @@ function array_flatten(array $foo) {
 }
 
 /**
- * @param StringReplacements $string1
+ * @param ReplacedString $string1
  * @param Node               $node1
  * @param Node               $node2
  * @param string             $string2
  */
-function replace_node(StringReplacements $string1, Node $node1, Node $node2, $string2) {
+function replace_node(ReplacedString $string1, Node $node1, Node $node2, $string2) {
     if (get_class($node1) !== get_class($node2)) {
         $replace = true;
     } else {
@@ -77,91 +76,23 @@ function replace_node(StringReplacements $string1, Node $node1, Node $node2, $st
     }
 }
 
-class StringReplacement {
-    /** @var int */
-    public $length = 0;
-    /** @var string */
-    public $replacement = '';
-
-    /**
-     * @param int    $length
-     * @param string $replacement
-     */
-    public function __construct($length, $replacement) {
-        $this->length      = $length;
-        $this->replacement = $replacement;
-    }
-}
-
-class StringReplacements {
-    /** @var string */
-    private $string;
-    /** @var StringReplacement[][] */
-    private $replacements = [];
-
-    /**
-     * @param string $string
-     */
-    public function __construct($string) {
-        $this->string = $string;
-    }
-
-    /**
-     * @param int    $offsetStart
-     * @param int    $offsetEnd
-     * @param string $replacement
-     */
-    public function replace($offsetStart, $offsetEnd, $replacement) {
-        $this->replacements[$offsetStart][] = new StringReplacement($offsetEnd - $offsetStart, $replacement);
-    }
-
-    public function toString() {
-        ksort($this->replacements, SORT_NUMERIC);
-        $pos = 0;
-        $str = '';
-        foreach ($this->replacements as $offset => $replacements) {
-            foreach ($replacements as $replacement) {
-                if ($offset < $pos) {
-                    throw new Exception('Replacement overlap');
-                } else {
-                    $str .= substr($this->string, $pos, $offset - $pos);
-                    $pos = $offset + $replacement->length;
-                }
-                $str .= $replacement->replacement;
-            }
-        }
-        $str .= substr($this->string, $pos);
-        return $str;
-    }
-
-    public function hasChanges() {
-        return !!$this->replacements;
-    }
-}
-
 /**
  * @param string $dir
  * @return string[]
  */
-function dir_recursive_contents($dir) {
+function php_files($dir) {
     $result = [];
     foreach (array_diff(scandir($dir), ['.', '..']) as $p) {
-        $path = $dir . DIRECTORY_SEPARATOR . $p;
+        $path = $dir . DIR_SEP . $p;
         if (filetype($path) === 'dir') {
-            foreach (dir_recursive_contents($path) as $p_) {
+            foreach (php_files($path) as $p_) {
                 $result[] = $p . '/' . $p_;
             }
-        } else {
+        } else if (pathinfo($p, DIR_SEP) === 'php') {
             $result [] = $p;
         }
     }
     return $result;
-}
-
-function filter_php_files(array $paths) {
-    return array_filter($paths, function ($path) {
-        return pathinfo($path, PATHINFO_EXTENSION) === 'php';
-    });
 }
 
 /**

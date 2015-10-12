@@ -1,18 +1,15 @@
 #!/usr/bin/env php
 <?php
 
-namespace NormalizePhp;
+namespace PhpSyntaxDiff;
 
 require_once __DIR__ . '/../vendor/autoload.php';
-
-ini_set('memory_limit', '-1');
-ini_set('xdebug.max_nesting_level', '100000');
 
 /**
  * @param string[] $argv
  * @return int
  */
-function main($argv) {
+function main(array $argv) {
     $argv = array_slice($argv, 1);
 
     if (count($argv) < 2) {
@@ -22,22 +19,22 @@ function main($argv) {
         list($src, $dst) = $argv;
     }
 
-    $srcFiles = filter_php_files(dir_recursive_contents($src));
-    $dstFiles = filter_php_files(dir_recursive_contents($dst));
+    $srcFiles = php_files($src);
+    $dstFiles = php_files($dst);
 
     foreach (array_diff($srcFiles, $dstFiles) as $remove) {
-        print "REMOVED $remove\n";
-        unlink($src . DS . $remove);
+        print "! removed: $remove\n";
+        unlink($src . DIR_SEP . $remove);
     }
 
     foreach (array_diff($dstFiles, $srcFiles) as $add) {
-        print "ADDED $add\n";
-        copy($dst . DS . $add, $src . DS . $add);
+        print "! added: $add\n";
+        copy($dst . DIR_SEP . $add, $src . DIR_SEP . $add);
     }
 
     foreach (array_intersect($dstFiles, $srcFiles) as $file) {
-        $srcCode  = file_get_contents($src . DS . $file);
-        $dstCode  = file_get_contents($dst . DS . $file);
+        $srcCode  = file_get_contents($src . DIR_SEP . $file);
+        $dstCode  = file_get_contents($dst . DIR_SEP . $file);
         $srcNodes = parse_php($srcCode, $srcHashBang);
         $dstNodes = parse_php($dstCode, $dstHashBang);
 
@@ -48,7 +45,7 @@ function main($argv) {
             $srcCode = $dstCode;
             $changed = true;
         } else {
-            $srcCode = new StringReplacements($srcCode);
+            $srcCode = new ReplacedString($srcCode);
             foreach ($srcNodes as $k => $srcNode) {
                 replace_node($srcCode, $srcNode, $dstNodes[$k], $dstCode);
             }
@@ -57,15 +54,18 @@ function main($argv) {
         }
 
         if ($changed) {
-            print "CHANGED $file\n";
-            file_put_contents($src . DS . $file, $srcCode);
+            print "! changed: $file\n";
+            file_put_contents($src . DIR_SEP . $file, $srcCode);
         } else {
-            print "unchanged $file\n";
+            print "  unchanged: $file\n";
         }
     }
 
     return 0;
 }
+
+ini_set('memory_limit', '-1');
+ini_set('xdebug.max_nesting_level', '100000');
 
 exit(main($_SERVER['argv']));
 
