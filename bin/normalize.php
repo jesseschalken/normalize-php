@@ -19,8 +19,8 @@ function main(array $argv) {
 
     foreach (php_files($dir) as $file) {
         print "$file\n";
-        $nodes = parse_php(file_get_contents($dir . DIRECTORY_SEPARATOR . $file), $hashBang);
-        print $hashBang . pretty_print($nodes);
+        $nodes = parse_php(file_get_contents($dir . DIRECTORY_SEPARATOR . $file));
+        print pretty_print($nodes);
         print "\n";
     }
     return 0;

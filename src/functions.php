@@ -4,7 +4,6 @@ namespace PhpSyntaxDiff;
 
 use PhpParser\Lexer;
 use PhpParser\Node;
-use PhpParser\Node\Name;
 use PhpParser\ParserFactory;
 use PhpParser\PrettyPrinter\Standard;
 
@@ -120,26 +119,15 @@ function map_nodes_recursive(array $nodes, callable $map) {
 
 /**
  * @param string $php
- * @param string $hashBang
  * @return \PhpParser\Node[]
  */
-function parse_php($php, &$hashBang = '') {
+function parse_php($php) {
     $parser = (new ParserFactory)->create(ParserFactory::ONLY_PHP5, new Lexer([
         'usedAttributes' => [
             'startFilePos',
             'endFilePos',
         ],
     ]));
-
-    // Remove the hash-bang line if there, since
-    // PhpParser doesn't support it
-    if (substr($php, 0, 2) === '#!') {
-        $pos      = strpos($php, "\n") + 1;
-        $hashBang = substr($php, 0, $pos);
-        $php      = substr($php, $pos);
-    } else {
-        $hashBang = '';
-    }
 
     $nodes = $parser->parse($php);
 

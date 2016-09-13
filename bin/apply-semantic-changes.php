@@ -35,13 +35,10 @@ function main(array $argv) {
     foreach (array_intersect($dstFiles, $srcFiles) as $file) {
         $srcCode  = file_get_contents($src . DIR_SEP . $file);
         $dstCode  = file_get_contents($dst . DIR_SEP . $file);
-        $srcNodes = parse_php($srcCode, $srcHashBang);
-        $dstNodes = parse_php($dstCode, $dstHashBang);
+        $srcNodes = parse_php($srcCode);
+        $dstNodes = parse_php($dstCode);
 
-        if (
-            ($srcHashBang !== $dstHashBang) ||
-            (array_keys($srcNodes) !== array_keys($dstNodes))
-        ) {
+        if (array_keys($srcNodes) !== array_keys($dstNodes)) {
             $srcCode = $dstCode;
             $changed = true;
         } else {
