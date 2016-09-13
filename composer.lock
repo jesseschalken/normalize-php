@@ -4,26 +4,33 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "9650f194195b024871c07f8a7f067433",
+    "hash": "5ca4f468321996bd0c98dc5ca81af97b",
+    "content-hash": "ffe01973d4feee4f0e35abb5622e539d",
     "packages": [
         {
             "name": "nikic/php-parser",
-            "version": "v2.0.0alpha1",
+            "version": "v2.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "e0a75ededaecccee2f083f951f4611ef95f6a562"
+                "reference": "ce5be709d59b32dd8a88c80259028759991a4206"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/e0a75ededaecccee2f083f951f4611ef95f6a562",
-                "reference": "e0a75ededaecccee2f083f951f4611ef95f6a562",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/ce5be709d59b32dd8a88c80259028759991a4206",
+                "reference": "ce5be709d59b32dd8a88c80259028759991a4206",
                 "shasum": ""
             },
             "require": {
                 "ext-tokenizer": "*",
                 "php": ">=5.4"
             },
+            "require-dev": {
+                "phpunit/phpunit": "~4.0"
+            },
+            "bin": [
+                "bin/php-parse"
+            ],
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -31,9 +38,9 @@
                 }
             },
             "autoload": {
-                "files": [
-                    "lib/bootstrap.php"
-                ]
+                "psr-4": {
+                    "PhpParser\\": "lib/PhpParser"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -49,7 +56,7 @@
                 "parser",
                 "php"
             ],
-            "time": "2015-07-14 19:13:42"
+            "time": "2016-02-28 19:48:28"
         }
     ],
     "packages-dev": [],

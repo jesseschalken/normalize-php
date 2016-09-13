@@ -1,9 +1,9 @@
 {
     "require": {
-        "nikic/php-parser": "v2.0.0alpha1"
+        "nikic/php-parser": "~v2.0.0alpha1"
     },
     "autoload": {
         "files": ["src/functions.php"],
-        "classMap": ["src"]
+        "classmap": ["src"]
     }
 }
