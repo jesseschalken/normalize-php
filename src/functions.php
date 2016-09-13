@@ -88,7 +88,7 @@ function php_files($dir) {
             foreach (php_files($path) as $p_) {
                 $result[] = $p . '/' . $p_;
             }
-        } else if (pathinfo($p, DIR_SEP) === 'php') {
+        } else if (pathinfo($p, PATHINFO_EXTENSION) === 'php') {
             $result [] = $p;
         }
     }
