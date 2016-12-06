@@ -33,9 +33,9 @@ function array_flatten(array $foo) {
 
 /**
  * @param ReplacedString $string1
- * @param Node               $node1
- * @param Node               $node2
- * @param string             $string2
+ * @param Node           $node1
+ * @param Node           $node2
+ * @param string         $string2
  */
 function replace_node(ReplacedString $string1, Node $node1, Node $node2, $string2) {
     if (get_class($node1) !== get_class($node2)) {
@@ -131,8 +131,8 @@ function parse_php($php) {
 
     $nodes = $parser->parse($php);
 
-    // Convert FALSE, TRUE and NULL into lowercase
     $nodes = map_nodes_recursive($nodes, function (Node $node) {
+        // Convert FALSE, TRUE and NULL into lowercase
         if ($node instanceof Node\Expr\ConstFetch) {
             $name  = $node->name;
             $lower = strtolower($name->toString());
@@ -144,6 +144,79 @@ function parse_php($php) {
                 $name->parts = array_map('strtolower', $name->parts);
             }
         }
+
+        // Remove type annotations
+        if ($node instanceof Node\Stmt\Function_) {
+            $node->returnType = null;
+        }
+        if ($node instanceof Node\Stmt\ClassMethod) {
+            $node->returnType = null;
+        }
+        if ($node instanceof Node\Expr\Closure) {
+            $node->returnType = null;
+        }
+        if ($node instanceof Node\Param) {
+            $node->type = null;
+        }
+
+        // Add "public" to class members that don't have a visibility
+        if ($node instanceof Node\Stmt\ClassMethod) {
+            if (!($node->type & Node\Stmt\Class_::VISIBILITY_MODIFER_MASK)) {
+                $node->type |= Node\Stmt\Class_::MODIFIER_PUBLIC;
+            }
+        }
+        if ($node instanceof Node\Stmt\Property) {
+            if (!($node->type & Node\Stmt\Class_::VISIBILITY_MODIFER_MASK)) {
+                $node->type |= Node\Stmt\Class_::MODIFIER_PUBLIC;
+            }
+        }
+
+        // Make all strings single quoted
+        if ($node instanceof Node\Scalar\String_) {
+            $node->setAttribute('kind', Node\Scalar\String_::KIND_SINGLE_QUOTED);
+        }
+
+        // Convert arrays to long form
+        if ($node instanceof Node\Expr\Array_) {
+            $node->setAttribute('kind', Node\Expr\Array_::KIND_LONG);
+        }
+
+        // Convert encaps ("foo $bar") into string concats ('foo '.$bar)
+        if ($node instanceof Node\Scalar\Encapsed) {
+            $parts = $node->parts;
+
+            // Convert the parts into normal expressions
+            $parts = \array_map(function ($part) {
+                if (\is_string($part)) {
+                    return new Node\Scalar\String_($part);
+                }
+                if ($part instanceof Node\Scalar\EncapsedStringPart) {
+                    return new Node\Scalar\String_($part->value);
+                }
+                return $part;
+            }, $parts);
+
+            switch (\count($parts)) {
+                case 0:
+                    $node = new Node\Scalar\String_('');
+                    break;
+                case 1:
+                    // If it's just one expr, like "$foo", convert it to (string)$foo
+                    $node = new Node\Expr\Cast\String_($parts[0]);
+                    break;
+                default:
+                    $node = null;
+                    foreach ($parts as $part) {
+                        if (!$node) {
+                            $node = $part;
+                        } else {
+                            $node = new Node\Expr\BinaryOp\Concat($node, $part);
+                        }
+                    }
+                    break;
+            }
+        }
+
         return $node;
     });
 
