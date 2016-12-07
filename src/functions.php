@@ -122,6 +122,10 @@ function map_nodes_recursive(array $nodes, callable $map) {
  * @return \PhpParser\Node[]
  */
 function parse_php($php) {
+    // Ignore the require_once injected by h2tp
+    // Ideally this should be done after parsing, not before, but I cbf.
+    $php = \preg_replace('/' . \preg_quote('require_once ($GLOBALS["HACKLIB_ROOT"]);') . '\s*/Ds', '', $php);
+
     $parser = (new ParserFactory)->create(ParserFactory::ONLY_PHP5, new Lexer([
         'usedAttributes' => [
             'startFilePos',
