@@ -117,6 +117,58 @@ function map_nodes_recursive(array $nodes, callable $map) {
     return $nodes;
 }
 
+function map_node_stmts(Node $node, callable $mapper) {
+    if ($node instanceof Node\Expr\Closure) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\Case_) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\Catch_) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\ClassMethod) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\Declare_) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\Do_) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\Else_) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\ElseIf_) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\Finally_) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\For_) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\Foreach_) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\Function_) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\If_) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\Namespace_) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\TryCatch) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    if ($node instanceof Node\Stmt\While_) {
+        $node->stmts = $mapper($node->stmts);
+    }
+    return $node;
+}
+
 /**
  * @param string $php
  * @return \PhpParser\Node[]
@@ -270,6 +322,21 @@ function parse_php($php) {
                 $node->expr = new Node\Scalar\LNumber(0);
             }
         }
+
+        // Expand echo statements with multiple expressions into multiple statements 
+        $node = map_node_stmts($node, function (array $stmts) {
+            $stmts2 = [];
+            foreach ($stmts as $stmt) {
+                if ($stmt instanceof Node\Stmt\Echo_) {
+                    foreach ($stmt->exprs as $expr) {
+                        $stmts2[] = new Node\Stmt\Echo_([$expr]);
+                    }
+                } else {
+                    $stmts2[] = $stmt;
+                }
+            }
+            return $stmts2;
+        });
 
         return $node;
     });
