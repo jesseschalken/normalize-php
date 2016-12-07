@@ -222,10 +222,94 @@ function parse_php($php) {
             $node = new Node\Stmt\Echo_([new Node\Scalar\String_($node->value)]);
         }
 
+        if ($node instanceof Node\Stmt\If_) {
+            $else = $node->else;
+            if ($else) {
+                // Remove empty else block
+                if (!$else->stmts) {
+                    $node->else = null;
+                }
+                // Convert "else if"s to "elseif"s.
+                if (\count($else->stmts) == 1) {
+                    $stmt = $else->stmts[0];
+                    if ($stmt instanceof Node\Stmt\If_) {
+                        // Merge the if statement into the outer if statement as an "elseif"
+                        $node->elseifs[] = new Node\Stmt\ElseIf_($stmt->cond, $stmt->stmts);
+                        foreach ($stmt->elseifs as $elseIf) {
+                            $node->elseifs[] = $elseIf;
+                        }
+                        $node->else = $stmt->else;
+                    }
+                }
+            }
+        }
+
+        if ($node instanceof Node\Expr\BinaryOp\LogicalAnd) {
+            $node = new Node\Expr\BinaryOp\BooleanAnd($node->left, $node->right);
+        }
+
+        if ($node instanceof Node\Expr\BinaryOp\LogicalOr) {
+            $node = new Node\Expr\BinaryOp\BooleanOr($node->left, $node->right);
+        }
+
+        // Normalize concatenation to be left-associative
+        // Evaluation order is unchanged (left to right)
+        $node = normalize_associative_op($node, Node\Expr\BinaryOp\Concat::class);
+        // Normalize AND expressions
+        $node = normalize_associative_op($node, Node\Expr\BinaryOp\BooleanAnd::class);
+        // Normalize OR expressions
+        $node = normalize_associative_op($node, Node\Expr\BinaryOp\BooleanOr::class);
+        // Normalize addition expressions
+        // If the value is a floating point, technically addition is NOT associative and this is
+        // an invalid normalization. :(((((
+        $node = normalize_associative_op($node, Node\Expr\BinaryOp\Plus::class);
+
+        // Add explicit "0" parameter to exit;
+        if ($node instanceof Node\Expr\Exit_) {
+            if (!$node->expr) {
+                $node->expr = new Node\Scalar\LNumber(0);
+            }
+        }
+
         return $node;
     });
 
     return $nodes;
+}
+
+function normalize_associative_op(Node $node, $class) {
+    $nodes = split_associative_op($node, $class);
+    $node  = join_associative_op($nodes, $class);
+    return $node;
+}
+
+/**
+ * @param Node   $node
+ * @param string $class
+ * @return Node[]
+ */
+function split_associative_op(Node $node, $class) {
+    if ($node instanceof $class) {
+        /** @var Node\Expr\BinaryOp $node */
+        return array_merge(
+            split_associative_op($node->left, $class),
+            split_associative_op($node->right, $class)
+        );
+    }
+    return [$node];
+}
+
+/**
+ * @param Node[] $parts
+ * @param string $class
+ * @return Node
+ */
+function join_associative_op(array $parts, $class) {
+    $node = null;
+    foreach ($parts as $part) {
+        $node = $node ? new $class($node, $part) : $part;
+    }
+    return $node;
 }
 
 function pretty_print(array $nodes) {
