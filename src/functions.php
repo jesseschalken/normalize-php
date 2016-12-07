@@ -207,14 +207,15 @@ function parse_php($php) {
                 default:
                     $node = null;
                     foreach ($parts as $part) {
-                        if (!$node) {
-                            $node = $part;
-                        } else {
-                            $node = new Node\Expr\BinaryOp\Concat($node, $part);
-                        }
+                        $node = $node ? new Node\Expr\BinaryOp\Concat($node, $part) : $part;
                     }
                     break;
             }
+        }
+
+        // Replace inline HTML with an echo of that HTML
+        if ($node instanceof Node\Stmt\InlineHTML) {
+            $node = new Node\Stmt\Echo_([new Node\Scalar\String_($node->value)]);
         }
 
         return $node;
