@@ -340,6 +340,9 @@ function parse_php($php) {
                     foreach ($stmt->exprs as $expr) {
                         $stmts2[] = new Node\Stmt\Echo_([$expr]);
                     }
+                } else if ($stmt instanceof Node\Expr\Print_) {
+                    // Convert "print" used as a statement to "echo"
+                    $stmts2[] = new Node\Stmt\Echo_([$stmt->expr]);
                 } else {
                     $stmts2[] = $stmt;
                 }
