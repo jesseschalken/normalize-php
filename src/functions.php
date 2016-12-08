@@ -320,10 +320,10 @@ function parse_php($php) {
         // Normalize addition expressions
         // If the value is a floating point, technically addition is NOT associative and this is
         // an invalid normalization. :(((((
-        $node = normalize_associative_op($node, Node\Expr\BinaryOp\Plus::class);
+        // $node = normalize_associative_op($node, Node\Expr\BinaryOp\Plus::class);
         // Normalize multiplication expressions
         // Also probably invalid in the case of floating point number :(((
-        $node = normalize_associative_op($node, Node\Expr\BinaryOp\Mul::class);
+        // $node = normalize_associative_op($node, Node\Expr\BinaryOp\Mul::class);
 
         // Add explicit "0" parameter to exit;
         if ($node instanceof Node\Expr\Exit_) {
