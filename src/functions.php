@@ -223,13 +223,13 @@ function parse_php($php) {
 
         // Add "public" to class members that don't have a visibility
         if ($node instanceof Node\Stmt\ClassMethod) {
-            if (!($node->type & Node\Stmt\Class_::VISIBILITY_MODIFER_MASK)) {
-                $node->type |= Node\Stmt\Class_::MODIFIER_PUBLIC;
+            if (!($node->flags & Node\Stmt\Class_::VISIBILITY_MODIFER_MASK)) {
+                $node->flags |= Node\Stmt\Class_::MODIFIER_PUBLIC;
             }
         }
         if ($node instanceof Node\Stmt\Property) {
-            if (!($node->type & Node\Stmt\Class_::VISIBILITY_MODIFER_MASK)) {
-                $node->type |= Node\Stmt\Class_::MODIFIER_PUBLIC;
+            if (!($node->flags & Node\Stmt\Class_::VISIBILITY_MODIFER_MASK)) {
+                $node->flags |= Node\Stmt\Class_::MODIFIER_PUBLIC;
             }
         }
 
