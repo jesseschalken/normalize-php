@@ -1,6 +1,6 @@
 {
     "require": {
-        "nikic/php-parser": "~v3.0.0"
+        "nikic/php-parser": "dev-master"
     },
     "autoload": {
         "files": ["src/functions.php"],
