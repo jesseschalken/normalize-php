@@ -118,6 +118,12 @@ function map_nodes_recursive(array $nodes, callable $map) {
 }
 
 function map_node_stmts(Node $node, callable $mapper) {
+    $mapper = function ($stmts) use ($mapper) {
+        if (\is_array($stmts)) {
+            return $mapper($stmts);
+        }
+        return $stmts;
+    };
     if ($node instanceof Node\Expr\Closure) {
         $node->stmts = $mapper($node->stmts);
     }
